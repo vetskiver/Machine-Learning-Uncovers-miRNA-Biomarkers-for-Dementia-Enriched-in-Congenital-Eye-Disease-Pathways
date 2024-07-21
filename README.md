@@ -17,45 +17,53 @@ The repository is organized into several directories, each containing scripts an
 
 ### 1. `Zero-R-Algorithm`
 
-- This directory contains the implementation of the Zero-R algorithm, which is used as a baseline classifier for comparison purposes.
+- **Files**:
+  - `Zero_R_(Zero_Rule)_Algorithm.ipynb`: Implementation of the Zero-R algorithm, used as a baseline classifier for comparison purposes.
 
 ### 2. `data_extraction_and_processing`
 
 - **Purpose**: Contains the main scripts used to preprocess the data and create the initial datasets for analysis.
 - **Files**:
-  - `data_extraction.py`: Script for extracting and preprocessing data from the GEO datasets.
-  - `data_processing.py`: Additional processing steps to clean and format the data for analysis.
+  - `clinical_factors_processing_and_combination.ipynb`: Script for processing and combining clinical factors with the miRNA data.
+  - `data_preprocessing_steps_for_clinical_analysis.ipynb`: Additional preprocessing steps to clean and format the data for analysis.
 
 ### 3. `deep_learning`
 
 - **Purpose**: Contains the deep learning algorithms used for each dataset condition.
 - **Files**:
-  - `deep_learning_model.py`: Implementation of deep learning models for miRNA classification.
-  - `model_training.py`: Script for training the deep learning models on the processed datasets.
+  - `AC_vs_NC_fastai.ipynb`: Deep learning model for distinguishing Alzheimer's Control (AC) from Normal Control (NC).
+  - `DLB_vs_NC_fastai.ipynb`: Deep learning model for distinguishing Dementia with Lewy Bodies (DLB) from Normal Control (NC).
+  - `MCI_vs_NC_fastai.ipynb`: Deep learning model for distinguishing Mild Cognitive Impairment (MCI) from Normal Control (NC).
+  - `NPH_vs_NC_fastai.ipynb`: Deep learning model for distinguishing Normal Pressure Hydrocephalus (NPH) from Normal Control (NC).
+  - `VAD_vs_NC_fastai.ipynb`: Deep learning model for distinguishing Vascular Dementia (VAD) from Normal Control (NC).
 
 ### 4. `feature_selection`
 
 - **Purpose**: Contains the feature selection methods used to identify significant miRNA features.
 - **Files**:
-  - `welch_anova.py`: Script for performing Welch ANOVA to identify significant features.
-  - `relieff.py`: Script for applying the ReliefF algorithm for feature selection.
-  - `combine_features.py`: Script for combining features selected by different methods.
+  - `ANOVA_assumptions.ipynb`: Assumptions and implementation of the ANOVA method.
+  - `bootstrapping_analysis_b1_p1_final.ipynb`: Bootstrapping analysis for branch 1, part 1.
+  - `bootstrapping_analysis_b1_p2_final.ipynb`: Bootstrapping analysis for branch 1, part 2.
+  - `bootstrapping_analysis_b2_final.ipynb`: Bootstrapping analysis for branch 2.
+  - `feature_selector_b1_p2.py`: Feature selection script for branch 1, part 2.
+  - `feature_selector_b1.py`: Feature selection script for branch 1.
+  - `feature_selector_b2.py`: Feature selection script for branch 2.
 
 ### 5. `ml_classifiers`
 
 - **Purpose**: Contains the machine learning classifier algorithms for each dataset condition.
 - **Files**:
-  - `svm_classifier.py`: Support Vector Machine classifier implementation.
-  - `rf_classifier.py`: Random Forest classifier implementation.
-  - `mlp_classifier.py`: Multilayer Perceptron classifier implementation.
-  - `classifier_training.py`: Script for training and evaluating the classifiers.
+  - `ML_classifiers_NC_vs_AD_parameter_tuning.ipynb`: Parameter tuning for Alzheimer's Disease (AD) vs. Normal Control (NC).
+  - `ML_classifiers_NC_vs_DLB_parameter_tuning.ipynb`: Parameter tuning for Dementia with Lewy Bodies (DLB) vs. Normal Control (NC).
+  - `ML_classifiers_NC_vs_MCI_parameter_tuning.ipynb`: Parameter tuning for Mild Cognitive Impairment (MCI) vs. Normal Control (NC).
+  - `ML_classifiers_NC_vs_NPH_parameter_tuning.ipynb`: Parameter tuning for Normal Pressure Hydrocephalus (NPH) vs. Normal Control (NC).
+  - `ML_classifiers_NC_vs_VaD_parameter_tuning.ipynb`: Parameter tuning for Vascular Dementia (VaD) vs. Normal Control (NC).
 
 ### 6. `visualizations`
 
 - **Purpose**: Contains the scripts for creating visualizations to compare the accuracy of different models and feature sets.
 - **Files**:
-  - `heatmap.py`: Script for generating heatmaps of model performance.
-  - `roc_curve.py`: Script for plotting ROC curves for different classifiers.
+  - `create_heatmaps.ipynb`: Script for generating heatmaps of model performance.
 
 ## Steps for Analysis
 
@@ -75,7 +83,7 @@ The repository is organized into several directories, each containing scripts an
 
 ## Contact
 
-For any questions or issues, please contact the repository owners
+For any questions or issues, please contact the repository owner.
 
 ---
 
