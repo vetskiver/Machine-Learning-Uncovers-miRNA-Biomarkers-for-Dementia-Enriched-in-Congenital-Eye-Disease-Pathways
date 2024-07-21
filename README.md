@@ -1,5 +1,3 @@
-# MachineLearningUncoversmiRNABiomarkersforDementiaEnrichedinEyeDiseasePathways
-
 # Machine Learning Uncovers miRNA Biomarkers for Dementia Enriched in Eye Disease Pathways
 
 ## Overview
