@@ -59,6 +59,11 @@ The repository is organized into several directories, each containing scripts an
   - `ML_classifiers_NC_vs_NPH_parameter_tuning.ipynb`: Parameter tuning for Normal Pressure Hydrocephalus (NPH) vs. Normal Control (NC).
   - `ML_classifiers_NC_vs_VaD_parameter_tuning.ipynb`: Parameter tuning for Vascular Dementia (VaD) vs. Normal Control (NC).
 
+- **Explanation**: We utilized three different machine learning algorithms for classification:
+  - **Logistic Regression**: A linear model for binary classification that estimates the probability of a binary outcome.
+  - **Support Vector Machine (SVM)**: A non-linear classifier that finds the hyperplane that best separates different classes in the feature space.
+  - **XGBoost**: An ensemble method based on gradient boosting, known for its high performance in structured data tasks.
+
 ### 6. `visualizations`
 
 - **Purpose**: Contains the scripts for creating visualizations to compare the accuracy of different models and feature sets.
@@ -88,3 +93,4 @@ For any questions or issues, please contact the repository owner.
 ---
 
 This README provides an overview of the repository structure and the general steps taken to analyze the miRNA expression data for identifying biomarkers associated with dementia. Each directory contains scripts specific to different stages of the analysis, from data extraction and preprocessing to feature selection, model training, and result visualization.
+
