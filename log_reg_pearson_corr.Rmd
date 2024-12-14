@@ -1,0 +1,384 @@
+---
+title: "Log_reg_compbio481"
+output: pdf_document
+date: "2024-03-03"
+---
+
+
+
+STEP 1: Install the following packages using install.packages() function and load them using library() function.
+
+```{r}
+library(mlbench)     # For PimaIndiansDiabetes2 dataset
+library(dplyr)       # For data manipulation (dplyr) 
+library(broom)       # For making model summary tidy
+library(visreg)      # For plotting logodds and probability 
+library(rcompanion)  # To calculate pseudo R-squared
+library(MASS)        # For stepwise model selection
+library(ROCR)        # To find the probability threshold for best accuracy
+library(car)         # For multicollinearity function vif()
+library(pwr)         # For posthoc power analysis
+```
+
+STEP 2: Load the data set
+
+```{r}
+analysis = "NC_vs_MCI"
+sprintf("../../Branch1_datasets_overall/%s.csv", analysis)
+currData = read.csv(sprintf("../../Branch1_datasets_overall/%s.csv", analysis))
+head(currData)
+str(currData)
+```
+
+Our next task is to process the data so that it gets compatible with the R functions.
+
+STEP 3. Data Preparation
+
+1: Remove data rows with NA values using na.omit() function (will try without this for now).
+2: Convert the dependent variable "Diagnosis" into integer values (neg:0 and pos:1) using levels() function.
+2.5: Remove unneeded columns (ID_1)
+3: Check the refined version of the data using str() function.
+
+```{r}
+
+attach(currData)
+currData$Diagnosis <- factor(currData$Diagnosis)       
+
+
+
+# Convert all other columns to factors
+currData$Sex = as.factor(currData$Sex)
+currData$APOE4 = as.factor(currData$APOE4)
+currData_new <- subset(currData, select = -c(ID_1))
+
+
+
+str(currData_new)                            # Checking the structure of the data frame.
+```
+
+Changed Sex to factor type, Age is normalized numerical type
+
+
+III.B. MODEL FITTING (BINARY LOGISTIC REGRESSION)
+
+STEP 1. FITTING A MODEL TO STUDY THE IMPORTANCE OF VARIABLES: 
+
+In order to fit a logistic regression model, you need to use the glm() function and inside that, you have to provide the formula, training data and family = "binomial".
+
+Say diabetes is the response binary variable, then:
+
+i.  Plus notation:      diabetes ~ ind_variable_1 + ind_variable_2 + … so on
+ii. Tilde dot notation: diabetes ~ .  means diabetes is predicted by the rest of the variables in the data frame except the dependent variable i.e. diabetes.
+
+
+```{r}
+
+
+# Define the function to remove highly correlated variables based on univariate logistic regression
+removeHighlyCorrelated <- function(data, cutoff = 0.8, columns_to_remove = character(0), target_var) {
+  
+  # Remove specified columns at the start
+  data <- data[, !colnames(data) %in% columns_to_remove]
+  
+  # Calculate the correlation matrix for numeric variables, handling NA values
+  cor_matrix <- cor(data[, sapply(data, is.numeric)], use = "pairwise.complete.obs")
+
+  # Find indices of highly correlated pairs (above the cutoff)
+  high_corr_indices <- which(abs(cor_matrix) > cutoff & upper.tri(cor_matrix), arr.ind = TRUE)
+
+  # If no highly correlated pairs found, return a message
+  if (nrow(high_corr_indices) == 0) {
+    print("No highly correlated variables found.")
+    return(list(data_reduced = data, removed_variables = character(0)))
+  }
+
+  # Print only the highly correlated pairs
+  print("Highly Correlated Variables:")
+  for (i in 1:nrow(high_corr_indices)) {
+    var1 <- rownames(cor_matrix)[high_corr_indices[i, 1]]
+    var2 <- colnames(cor_matrix)[high_corr_indices[i, 2]]
+    corr <- cor_matrix[high_corr_indices[i, 1], high_corr_indices[i, 2]]
+    print(paste(var1, "and", var2, ":", corr))
+  }
+
+  # Create a vector to keep track of variables to remove
+  vars_to_remove <- character(0)
+
+  # For each highly correlated pair, select one variable to remove based on univariate logistic regression
+  for (i in 1:nrow(high_corr_indices)) {
+    var1 <- colnames(data)[high_corr_indices[i, 1]]
+    var2 <- colnames(data)[high_corr_indices[i, 2]]
+
+    # Perform univariate logistic regression for var1
+    model_logi_var1 <- glm(as.formula(paste(target_var, "~", var1)), data = data, family = "binomial")
+    summary_var1 <- summary(model_logi_var1)
+    odds_ratio_var1 <- tidy(model_logi_var1, exponentiate = TRUE, conf.level = 0.95)
+    
+    # Perform univariate logistic regression for var2
+    model_logi_var2 <- glm(as.formula(paste(target_var, "~", var2)), data = data, family = "binomial")
+    summary_var2 <- summary(model_logi_var2)
+    odds_ratio_var2 <- tidy(model_logi_var2, exponentiate = TRUE, conf.level = 0.95)
+    
+    # Extract p-values and odds ratios
+    p_value_var1 <- summary_var1$coefficients[2, 4]
+    p_value_var2 <- summary_var2$coefficients[2, 4]
+    odds_ratio1 <- odds_ratio_var1$estimate[2]
+    odds_ratio2 <- odds_ratio_var2$estimate[2]
+
+    # Print p-values and odds ratios
+    print(paste("Variable:", var1, "P-value:", p_value_var1, "Odds Ratio:", odds_ratio1))
+    print(paste("Variable:", var2, "P-value:", p_value_var2, "Odds Ratio:", odds_ratio2))
+    
+    # Determine which variable to remove
+    if (p_value_var1 < 0.05 & p_value_var2 < 0.05) {
+      if (odds_ratio1 > 1 & odds_ratio2 > 1) {
+        var_to_remove <- ifelse(odds_ratio1 >= odds_ratio2, var2, var1)
+      } else if (odds_ratio1 < 1 & odds_ratio2 < 1) {
+        var_to_remove <- ifelse(odds_ratio1 <= odds_ratio2, var2, var1)
+      } else {
+        var_to_remove <- ifelse(odds_ratio1 >= 1, var2, var1)
+      }
+    } else if (p_value_var1 < 0.05) {
+      var_to_remove <- var2
+    } else if (p_value_var2 < 0.05) {
+      var_to_remove <- var1
+    } else {
+      var_to_remove <- var1
+    }
+    
+    # Add the selected variable to the list of variables to remove
+    if (!var_to_remove %in% vars_to_remove) {
+      vars_to_remove <- c(vars_to_remove, var_to_remove)
+    }
+  }
+
+  # Remove the selected variables from the dataset
+  data_reduced <- data[, !colnames(data) %in% vars_to_remove]
+
+  # Return the reduced data and the names of removed variables
+  list(data_reduced = data_reduced, removed_variables = vars_to_remove)
+}
+
+# Example usage
+columns_to_remove <- c("APOE4", "Age", "Sex", "Diagnosis")
+removed_columns <- currData_new[, columns_to_remove]
+
+# Use the function to remove highly correlated variables from currData_new
+result <- removeHighlyCorrelated(currData_new, 0.8, columns_to_remove, target_var = "Diagnosis")
+
+# Access the reduced data
+reducedData_new <- result$data_reduced
+
+# Print removed variables to see which were removed
+print(result$removed_variables)
+
+
+
+
+```
+```{r}
+# equal data to the data with columns filtered
+# Add back the clin factors
+
+currData_new <- cbind(result$data_reduced, removed_columns)
+currData_new
+```
+
+
+```{r}
+# WE USE THE ENTIRE DATASET HERE
+model_logi <- glm(Diagnosis ~., data = currData_new, family = "binomial") # Fitting a binary logistic regression
+summary(model_logi)                                                   # Model summary
+```
+ASSUMPTIONS
+
+LOGISTIC REGRESSION ASSUMPTIONS
+
+Assumption #1: Your dependent variable is measured is binary. You have one or more independent variables that are continuous, ordinal or nominal. Ordinal independent variables must be treated as being either continuous or nominal. 
+SATISFIED
+Assumption #2: You should have independence of observations.
+SATISFIED (assumed)
+Assumption #3: The nominal/ordinal variables should have mutually exclusive and exhaustive categories. 
+SATISFIED (e.g. one person is not in two age groups)
+Assumption #4: There should be a bare minimum of 15 cases per independent variable (although some recommend as high as 50 cases per independent variable).
+```{r}
+sum(currData_new$Diagnosis == 1)
+
+```
+We set it at 10 per feature such that we have at least a few features
+
+
+Assumption #5: There should be no multicollinearity.
+
+```{r}
+# already removed
+```
+
+INTERPRETATION: Our continuous independent variables do not show multicollinearity.
+
+Assumption #6: There should be no outliers, high leverage values or highly influential points.
+
+```{r}
+plot(model_logi, which=4, cex.lab=1.3,cex.axis=1.3, cex=1.3, cex.id = 1.3, cex.caption = 1.3) # Cut offs we use are 0.5, and 1. n: number of samples.
+plot(model_logi, which=5, cex.lab=1.3,cex.axis=1.3, cex=1.3, cex.id = 1.3, cex.caption = 1.3) # Points beyond dashed red curves are problematic
+```
+
+INTERPRETATION: In our analysis, there are no data points with a Cook's distance exceeding 0.5 or 1, indicating the absence of highly influential points. So, no outlier is detected.
+
+Assumption #7: There needs to be a linear relationship between any continuous independent variables and the logit transformation of the dependent variable. You can check this assumption using scatterplots.
+
+```{r}
+
+library(dplyr)
+data_for_plots <- dplyr::select(currData_new, -Sex, -Age, -APOE4)
+
+model.final = glm(formula = Diagnosis ~., family = "binomial", data = data_for_plots)
+
+
+
+
+# Get the names of the variables (including log odds if added)
+variables <- names(data_for_plots)
+
+# Number of variables to include in each chunk
+chunk_size = 5
+
+# Calculate the number of chunks
+num_chunks <- ceiling(length(variables) / chunk_size)
+
+
+# Loop through each chunk
+for (i in 1:num_chunks) {
+  # Select the subset of variables for this chunk
+  chunk_vars <- variables[((i - 1) * chunk_size + 1):min(i * chunk_size, length(variables))]
+  
+  # Subset the data for these variables
+  chunk_data <- data_for_plots[, chunk_vars, drop = FALSE]
+  # Calculate predictions and log odds
+  pred = predict(model.final, chunk_data, type = "response")
+  logodds = logit(pred)
+  
+  
+  # Define file name dynamically
+  file_name <- paste("plots_for_linearity/plot_chunk_", i, ".png", sep = "")
+
+  # Open a PNG device
+  png(file_name)
+
+  # Generate pairs plot
+  pairs(~logodds + ., data = chunk_data)
+
+  # Close the PNG device
+  dev.off()
+
+}
+
+```
+CHECK THE PLOT CHUNK PNGs IN THE OTHER FOLDER
+
+INTERPRETATION: The scatter plots show that variables are mostly linearly associated with the dementia outcome in logit scale.
+
+
+POWER ANALYSIS and LOGGING RESULTS
+
+
+```{r}
+
+# Define the file name for logging
+log_file <- "overall_log_reg_power_results.txt"
+
+# Create or append to the log file
+sink(log_file, append = TRUE)
+
+# Print header
+cat("\n===========================\n")
+cat(sprintf("LOGISTIC REGRESSION %s POWER ANALYSIS RESULTS\n", analysis))
+cat("===========================\n")
+
+# Step 1: Print McFadden R²
+cat("\nPseudo R² Results:\n")
+pseudo_r2 <- nagelkerke(model_logi)$Pseudo.R.squared
+print(pseudo_r2)
+
+# Extract McFadden R² and display
+mcfadden_r2 <- nagelkerke(model_logi)$Pseudo.R.squared[1, 1]
+cat("\nMcFadden R²:", mcfadden_r2, "\n")
+
+# Step 2: Effect size calculation
+my.f2 <- mcfadden_r2 / (1 - mcfadden_r2)
+cat("\nEffect size (f²):", my.f2, "\n")
+
+# Step 3: Degrees of freedom
+my.u <- length(model_logi$coefficients) - 1
+N <- nrow(currData_new)
+my.v <- N - my.u - 1
+cat("\nDegrees of freedom (u):", my.u, "\n")
+cat("Residual degrees of freedom (v):", my.v, "\n")
+cat("Sample size (N):", N, "\n")
+
+# Step 4: Power analysis
+power_result <- pwr.f2.test(u = my.u, v = my.v, f2 = my.f2, sig.level = 0.05, power = NULL)
+cat("\nPower Analysis Results:\n")
+print(power_result)
+
+# End the logging
+sink()
+
+cat("Results have been logged into 'log_reg_power_results.txt'\n")
+
+
+
+```
+
+
+
+
+STEP 3. Model Interpretation 
+
+
+
+After model fitting, the next step is to generate the model summary table and interpret the model coefficients. The coefficients are in log-odds terms. 
+
+
+ODDS Ratio: The interpretation of coefficients in the log-odds term is hard. But, we can compute the odds ratio by taking exponent of the estimated coefficients, and report it. 
+```{r}
+library(broom)
+
+# the odds_ratio_table is created as follows
+odds_ratio_table_final = tidy(model_logi, exponentiate = TRUE, conf.level = 0.95, conf.int = TRUE)
+
+
+# Rename the 'estimate' column to 'odds_ratio'
+colnames(odds_ratio_table_final)[colnames(odds_ratio_table_final) == "estimate"] <- "odds_ratio"
+
+# Extract p-values
+original_p_values = odds_ratio_table_final$p.value
+
+# Adjust p-values using Benjamini-Hochberg method
+adjusted_p_values = p.adjust(original_p_values, method = "BH")
+
+# Add adjusted p-values to the table
+odds_ratio_table_final$adjusted_p_value = adjusted_p_values
+
+# Now odds_ratio_table has an additional column with adjusted p-values
+
+odds_ratio_table_final
+
+#odds_ratio_table_final$term <- sub("1$", "", odds_ratio_table_final$term)
+
+```
+
+
+
+
+
+```{r}
+
+
+# Specify the file path where you want to save the CSV file
+output_file <- "./results/NC_vs_NPH_oddsratios.csv"
+
+# Export the odds ratio table to a CSV file
+write.csv(odds_ratio_table_final, file = output_file, row.names = FALSE)
+
+```

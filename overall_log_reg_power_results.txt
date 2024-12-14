@@ -1,0 +1,145 @@
+
+===========================
+LOGISTIC REGRESSION NC_vs_AD POWER ANALYSIS RESULTS
+===========================
+
+Pseudo R² Results:
+                             Pseudo.R.squared
+McFadden                             0.553872
+Cox and Snell (ML)                   0.442170
+Nagelkerke (Cragg and Uhler)         0.678790
+
+McFadden R²: 0.553872 
+
+Effect size (f²): 1.241509 
+
+Degrees of freedom (u): 31 
+Residual degrees of freedom (v): 1277 
+Sample size (N): 1309 
+
+Power Analysis Results:
+
+     Multiple regression power calculation 
+
+              u = 31
+              v = 1277
+             f2 = 1.241509
+      sig.level = 0.05
+          power = 1
+
+
+===========================
+LOGISTIC REGRESSION NC_vs_VaD POWER ANALYSIS RESULTS
+===========================
+
+Pseudo R² Results:
+                             Pseudo.R.squared
+McFadden                             0.503013
+Cox and Snell (ML)                   0.425654
+Nagelkerke (Cragg and Uhler)         0.637275
+
+McFadden R²: 0.503013 
+
+Effect size (f²): 1.012125 
+
+Degrees of freedom (u): 13 
+Residual degrees of freedom (v): 365 
+Sample size (N): 379 
+
+Power Analysis Results:
+
+     Multiple regression power calculation 
+
+              u = 13
+              v = 365
+             f2 = 1.012125
+      sig.level = 0.05
+          power = 1
+
+
+===========================
+LOGISTIC REGRESSION NC_vs_DLB POWER ANALYSIS RESULTS
+===========================
+
+Pseudo R² Results:
+                             Pseudo.R.squared
+McFadden                             0.609248
+Cox and Snell (ML)                   0.551931
+Nagelkerke (Cragg and Uhler)         0.753746
+
+McFadden R²: 0.609248 
+
+Effect size (f²): 1.559168 
+
+Degrees of freedom (u): 20 
+Residual degrees of freedom (v): 436 
+Sample size (N): 457 
+
+Power Analysis Results:
+
+     Multiple regression power calculation 
+
+              u = 20
+              v = 436
+             f2 = 1.559168
+      sig.level = 0.05
+          power = 1
+
+
+===========================
+LOGISTIC REGRESSION NC_vs_NPH POWER ANALYSIS RESULTS
+===========================
+
+Pseudo R² Results:
+                             Pseudo.R.squared
+McFadden                             0.345283
+Cox and Snell (ML)                   0.308486
+Nagelkerke (Cragg and Uhler)         0.469957
+
+McFadden R²: 0.345283 
+
+Effect size (f²): 0.5273775 
+
+Degrees of freedom (u): 11 
+Residual degrees of freedom (v): 360 
+Sample size (N): 372 
+
+Power Analysis Results:
+
+     Multiple regression power calculation 
+
+              u = 11
+              v = 360
+             f2 = 0.5273775
+      sig.level = 0.05
+          power = 1
+
+
+===========================
+LOGISTIC REGRESSION NC_vs_MCI POWER ANALYSIS RESULTS
+===========================
+
+Pseudo R² Results:
+                             Pseudo.R.squared
+McFadden                             0.415347
+Cox and Snell (ML)                   0.236655
+Nagelkerke (Cragg and Uhler)         0.495051
+
+McFadden R²: 0.415347 
+
+Effect size (f²): 0.7104163 
+
+Degrees of freedom (u): 7 
+Residual degrees of freedom (v): 312 
+Sample size (N): 320 
+
+Power Analysis Results:
+
+     Multiple regression power calculation 
+
+              u = 7
+              v = 312
+             f2 = 0.7104163
+      sig.level = 0.05
+          power = 1
+
